@@ -198,22 +198,26 @@ app.get("/adminHomepage", async (req, res) => {
 })
 app.post('/adminHomepage', async (req, res) => {
   const { username, password } = req.body;
+  const adminUsername = 'admin';
+  const adminPassword = 'UnifiedMentorProject';
 
   try {
     // Find admin by username
-    const admin = await Admin.findOne({ username });
-    if (!admin) {
+    // const admin = await Admin.findOne({ username });
+    // if (!admin) {
+    //   return res.render('adminlogin', { error: 'Invalid credentials' });
+    // }
+    if (username !== adminUsername || password !== adminPassword) {
       return res.render('adminlogin', { error: 'Invalid credentials' });
     }
-
     const facultyCount = await faculty.countDocuments();
     const studentCount = await User.countDocuments();
 
     // Compare hashed password
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.render('adminlogin', { error: 'Incorrect Password !' });
-    }
+    // const isMatch = await bcrypt.compare(password, admin.password);
+    // if (!isMatch) {
+    //   return res.render('adminlogin', { error: 'Incorrect Password !' });
+    // }
 
     // Set admin session
     req.session.admin = true;
