@@ -1,0 +1,46 @@
+<style>
+    /* Add to existing CSS */
+aside {
+    transition: transform 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    aside {
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 40;
+        height: 100vh;
+    }
+    
+    aside.active {
+        transform: translateX(0);
+    }
+
+    #main-content {
+        margin-left: 0;
+    }
+}
+
+/* Modal Animation */
+#addFacultyModal {
+    animation: modalEnter 0.3s ease-out;
+}
+
+@keyframes modalEnter {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<header class="admin-header">
+    <div class="app-logo">TutorFlow Admin</div>
+    <div class="profile-menu">
+        <button class="profile-btn">
+            <i class="fas fa-user-circle" style="color: white; font-size: 2rem;"></i>
+        </button>
+        <div class="profile-dropdown">
+            <a href="#" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+</header>

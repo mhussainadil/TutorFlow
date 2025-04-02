@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=
+    "/uploads/tutorflow-img.webp"
+            type="image/x-icon"  class="rounded-full"/>
+    <title>Manage Faculty - TutorFlow</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="/css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Custom Color Scheme */
+        :root {
+            --primary: #4F46E5;    /* Indigo */
+            --secondary: #6D28D9;  /* Purple */
+            --accent: #EC4899;     /* Pink */
+            --dark: #1E293B;       /* Dark Slate */
+            --light: #F8FAFC;      /* Light Gray */
+        }
+
+        /* Sidebar Animation */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(0);
+        }
+
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+        }
+
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+
+        @keyframes modalEnter {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+/* Dark Mode Overrides */
+[data-theme="dark"] {
+    --primary: #818CF8;
+    --secondary: #7C3AED;
+    --dark: #111827;
+    --light: #1F2937;
+    --bg-color: #111827;
+    --text-color: #F9FAFB;
+    --card-bg: #1F2937;
+    --input-bg: #374151;
+    --border-color: #374151;
+}
+
+[data-theme="dark"] body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Header */
+[data-theme="dark"] .bg-indigo-50 {
+    background-color: var(--dark) !important;
+    border-color: var(--border-color);
+}
+
+/* Sidebar */
+[data-theme="dark"] .sidebar {
+    background: linear-gradient(to bottom, var(--dark), var(--light));
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .border-indigo-200 {
+    border-color: var(--border-color) !important;
+}
+
+/* Cards and Content */
+[data-theme="dark"] .bg-white {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] main {
+    background-color: var(--bg-color);
+}
+
+/* Text Colors */
+[data-theme="dark"] .text-indigo-800 {
+    color: #E0E7FF !important;
+}
+
+[data-theme="dark"] .text-gray-700 {
+    color: #D1D5DB !important;
+}
+
+/* Inputs and Dropdowns */
+[data-theme="dark"] select,
+[data-theme="dark"] input {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .border-indigo-200 {
+    border-color: var(--border-color) !important;
+}
+
+/* Profile Dropdown */
+[data-theme="dark"] #profileDropdown {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] #profileDropdown a,
+[data-theme="dark"] #profileDropdown button {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] #profileDropdown a:hover,
+[data-theme="dark"] #profileDropdown button:hover {
+    background-color: var(--dark);
+}
+
+/* Buttons */
+[data-theme="dark"] .bg-indigo-600 {
+    background-color: var(--primary);
+}
+
+[data-theme="dark"] .bg-indigo-600:hover {
+    background-color: #6D28D9;
+}
+
+/* Radio Buttons */
+[data-theme="dark"] .theme-radio:checked {
+    border-color: var(--primary);
+    background-color: var(--primary);
+}
+
+/* Hover States */
+[data-theme="dark"] .hover\:bg-indigo-50:hover {
+    background-color: rgba(55, 65, 81, 0.5) !important;
+}
+    </style>
+    <script>
+// Translations object
+const translations = {
+    en: {
+        settingsTitle: "System Settings",
+        languageLabel: "Select Interface Language",
+        themeMode: "Theme Mode",
+        themeDesc: "Choose between light and dark themes",
+        light: "Light",
+        dark: "Dark",
+        accentColor: "Accent Color",
+        accentDesc: "Select your preferred accent color",
+        notifications: "Notification Settings",
+        security: "Security Settings",
+        twoFA: "Two-Factor Authentication",
+        twoFADesc: "Add an extra layer of security",
+        password: "Password",
+        saveChanges: "Save All Changes"
+    },
+    es: {
+        settingsTitle: "Configuración del Sistema",
+        languageLabel: "Seleccionar Idioma de la Interfaz",
+        themeMode: "Modo de Tema",
+        themeDesc: "Elige entre temas claros y oscuros",
+        light: "Claro",
+        dark: "Oscuro",
+        accentColor: "Color de Acento",
+        accentDesc: "Selecciona tu color preferido",
+        notifications: "Configuración de Notificaciones",
+        security: "Configuración de Seguridad",
+        twoFA: "Autenticación de Dos Factores",
+        twoFADesc: "Agrega una capa adicional de seguridad",
+        password: "Contraseña",
+        saveChanges: "Guardar Todos los Cambios"
+    },
+    fr: {
+        // French translations
+    }
+};
+
+// Language update handler
+document.addEventListener('DOMContentLoaded', () => {
+    const languageSelect = document.querySelector('#languageSelect');
+    const updateLangBtn = document.querySelector('#updateLangBtn');
+    const saveAllBtn = document.querySelector('#saveAllBtn');
+
+    // Load saved language
+    const savedLang = localStorage.getItem('appLang') || 'en';
+    languageSelect.value = savedLang;
+    updateTranslations(savedLang);
+
+    // Update language button handler
+    updateLangBtn.addEventListener('click', async () => {
+        const newLang = languageSelect.value;
+        
+        try {
+            // Send to server (example using fetch)
+            const response = await fetch('/update-language', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ language: newLang })
+            });
+
+            if (response.ok) {
+                localStorage.setItem('appLang', newLang);
+                updateTranslations(newLang);
+                showToast('Language updated successfully!');
+            }
+        } catch (error) {
+            console.error('Error updating language:', error);
+            showToast('Error updating language', 'error');
+        }
+    });
+
+    // Update all translations on page
+    function updateTranslations(lang) {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.dataset.i18n;
+            element.textContent = translations[lang][key];
+        });
+    }
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg ${
+            type === 'error' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
+        }`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.remove(), 3000);
+    }
+});
+document.documentElement.lang = newLang;
+</script>
+</head>
+<body class="bg-gray-50" data-theme="<%= settings.theme %>"    
+    data-theme="<%= settings.theme %>" 
+    lang="<%= settings.language %>">
+
+    <!-- Header -->
+     <header class="fixed top-0 left-0 right-0 h-16 bg-indigo-50 shadow-sm flex items-center justify-between px-6 z-50">
+        <div class="flex items-center space-x-4">
+            <!-- Mobile Menu Button -->
+            <button id="sidebarToggle" class="text-indigo-600 lg:hidden">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="text-indigo-800 text-xl font-bold">TutorFlow Admin</div>
+        </div>
+        
+        <!-- Profile Dropdown -->
+        <div class="relative">
+            <button id="profileBtn" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center ring-2 ring-indigo-100">
+                <i class="fas fa-user text-indigo-600"></i>
+            </button>
+            
+            <div id="profileDropdown" class="hidden absolute right-0 top-12 bg-white rounded-lg shadow-lg w-48 py-2 border border-indigo-100">
+                <a href="#" class="px-4 py-2 text-gray-700 hover:bg-indigo-50 flex items-center">
+                    <i class="fas fa-cog mr-2 text-indigo-600"></i> Settings
+                </a>
+                <form action="/logout" method="POST" class="border-t border-indigo-100 mt-2">
+                    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-indigo-50 flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2 text-indigo-600"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+    <!-- Sidebar -->
+    <aside class="sidebar fixed left-0 top-16 h-screen w-64 bg-gradient-to-b from-indigo-50 to-indigo-100 p-6 z-40 border-r border-indigo-200">
+        <nav class="space-y-2">
+            <a href="/adminHomepage" class="flex items-center text-indigo-800 p-3 rounded-lg hover:bg-indigo-50">
+                <i class="fas fa-home mr-3 text-indigo-600"></i>
+                Dashboard
+            </a>
+            <a href="/Mfaculty" class="flex items-center text-indigo-800 p-3 rounded-lg hover:bg-indigo-50">
+                <i class="fas fa-chalkboard-teacher mr-3 text-indigo-600"></i>
+                Manage Faculty
+            </a>
+            <a href="/Mstudents" class="flex items-center text-indigo-800 p-3 rounded-lg  hover:bg-indigo-50   border-indigo-200">
+                <i class="fas fa-users mr-3 text-indigo-600"></i>
+                Manage Students
+            </a>
+        </nav>
+
+        <!-- Bottom Settings/Logout -->
+        <div class="absolute bottom-14 left-0 right-0 p-4 border-t border-indigo-200">
+            <a href="/ASettings" class="flex items-center text-indigo-800  bg-indigo-100 border  border-indigo-200 p-3 rounded-lg">
+                <i class="fas fa-cog mr-3 text-indigo-600"></i>
+                Settings
+            </a>
+            <form action="/logout" method="POST" class="w-full">
+                <button type="submit" class="flex items-center text-indigo-800 hover:bg-indigo-50 p-3 rounded-lg w-full">
+                    <i class="fas fa-sign-out-alt mr-3 text-indigo-600"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+   <!-- Main Content -->
+   <main class="ml-0 md:ml-64 mt-16 p-8 min-h-screen transition-all duration-300">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-8">System Settings</h2>
+
+        <!-- Language Settings Card -->
+       
+        <div class="bg-white rounded-xl shadow-lg mb-6 border border-indigo-100">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-indigo-800 mb-4">
+                    <i class="fas fa-globe mr-2 text-indigo-600"></i>
+                    Language Preferences
+                </h3>
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div class="flex-1">
+                        <select id="languageSelect" class="w-full p-2 border border-indigo-200 rounded-lg">
+                            <% availableLanguages.forEach(lang => { %>
+                            <option value="<%= lang.code %>" <%= settings.language === lang.code ? 'selected' : '' %>>
+                                <%= lang.name %>
+                            </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <button id="updateLangBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        Update Language
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Theme Preferences -->
+ 
+        </div>
+
+        <!-- Theme Settings -->
+        <div class="bg-white rounded-xl shadow-lg mb-6 border border-indigo-100">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-indigo-800 mb-4">
+                    <i class="fas fa-palette mr-2 text-indigo-600"></i>
+                    Appearance
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Theme Mode</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <% ['light', 'dark'].forEach(theme => { %>
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="theme" value="<%= theme %>" 
+                                    <%= settings.theme === theme ? 'checked' : '' %> 
+                                    class="text-indigo-600 theme-radio">
+                                <span class="text-gray-700 capitalize"><%= theme %></span>
+                            </label>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</main>
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Priority: DB > Session > Default
+    const theme = document.body.dataset.userTheme || 
+                 localStorage.getItem('theme') || 
+                 'light';
+    
+    const lang = document.documentElement.lang || 
+                localStorage.getItem('appLang') || 
+                'en';
+
+    // Apply immediately
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.lang = lang;
+});
+    // Theme Handler
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Theme change handler
+        document.querySelectorAll('.theme-radio').forEach(radio => {
+            radio.addEventListener('change', async (e) => {
+                const newTheme = e.target.value;
+                
+                try {
+                    const response = await fetch('/update-theme', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ theme: newTheme })
+                    });
+
+                    if (response.ok) {
+                        localStorage.setItem('theme', newTheme);
+                        document.documentElement.setAttribute('data-theme', newTheme);
+                        showToast('Theme updated successfully!');
+                    }
+                } catch (error) {
+                    console.error('Theme update failed:', error);
+                    showToast('Error updating theme', 'error');
+                }
+            });
+        });
+    });
+
+    // Update language handler to persist in session
+    updateLangBtn.addEventListener('click', async () => {
+        const newLang = languageSelect.value;
+        
+        try {
+            const response = await fetch('/Aupdate-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: newLang })
+            });
+
+            if (response.ok) {
+                localStorage.setItem('appLang', newLang);
+                document.documentElement.lang = newLang;
+                location.reload(); // Refresh to apply language changes
+            }
+        } catch (error) {
+            console.error('Language update failed:', error);
+            showToast('Error updating language', 'error');
+        }
+    });
+
+        // Sidebar Toggle
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mainContent = document.querySelector('main');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-hidden');
+            mainContent.classList.toggle('ml-64');
+        });
+
+        // Modal Controls
+        function openAddFacultyModal() {
+            document.getElementById('addFacultyModal').classList.remove('hidden');
+        }
+
+        function closeAddFacultyModal() {
+            document.getElementById('addFacultyModal').classList.add('hidden');
+        }
+
+        // Responsive Check
+        function checkMobile() {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('sidebar-hidden');
+                mainContent.classList.remove('ml-64');
+            } else {
+                sidebar.classList.remove('sidebar-hidden');
+                mainContent.classList.add('ml-64');
+            }
+        }
+
+        window.addEventListener('resize', checkMobile);
+        checkMobile(); // Initial check
+
+
+        document.getElementById("searchInput").addEventListener("input", async function () {
+    let query = this.value.trim(); // Get search input
+
+    if (query === "") {
+        location.reload(); // Reset table when input is cleared
+        return;
+    }
+
+    try {
+        let response = await fetch(`/searchStudents?query=${query}`);
+        let students = await response.json();
+
+        // Update the table with new search results
+        updateStudentTable(students);
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+    }
+});
+
+// Function to update table dynamically
+function updateStudentTable(students) {
+    let tbody = document.querySelector("tbody");
+    tbody.innerHTML = ""; // Clear old data
+
+    students.forEach(student => {
+        let row = `<tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <img src="${student.profilePhoto}" alt="">
+                </div>
+            </td>
+            <td class="px-6 py-4">${student.fullName}</td>
+            <td class="px-6 py-4">${student.department}</td>
+            <td class="px-6 py-4">${student.rollNo}</td>
+            <td class="px-6 py-4 flex gap-2">
+                <button class="text-indigo-600 hover:text-indigo-700">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="text-red-500 hover:text-red-600">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+// Close sidebar on mobile when clicking outside
+document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('sidebar-visible');
+            }
+        });
+
+        // Profile Dropdown Fix
+       // Close dropdown when clicking outside
+       document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+        // Profile Dropdown
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+        
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+        });
+        // Language Handling
+        document.addEventListener('DOMContentLoaded', () => {
+            const languageSelect = document.querySelector('#languageSelect');
+            const updateLangBtn = document.querySelector('#updateLangBtn');
+
+            updateLangBtn.addEventListener('click', async () => {
+                const newLang = languageSelect.value;
+                
+                try {
+                    const response = await fetch('/update-language', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ language: newLang })
+                    });
+
+                    if (response.ok) {
+                        localStorage.setItem('appLang', newLang);
+                        document.documentElement.lang = newLang;
+                        location.reload(); // Refresh to apply changes
+                    }
+                } catch (error) {
+                    console.error('Language update failed:', error);
+                    alert('Error updating language');
+                }
+            });
+        });
+
+        // Sidebar Toggle
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('sidebar-hidden');
+        });
+
+        // Profile Dropdown
+        document.getElementById('profileBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#profileDropdown')) {
+                document.getElementById('profileDropdown').classList.add('hidden');
+            }
+        });
+
+    </script>
+</body>
+</html>

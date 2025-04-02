@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=
+    "/uploads/tutorflow-img.webp"
+            type="image/x-icon"  class="rounded-full"/>
+    <title>Manage Faculty - TutorFlow</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="/css/output.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Custom Color Scheme */
+        :root {
+            --primary: #4F46E5;    /* Indigo */
+            --secondary: #6D28D9;  /* Purple */
+            --accent: #EC4899;     /* Pink */
+            --dark: #1E293B;       /* Dark Slate */
+            --light: #F8FAFC;      /* Light Gray */
+        }
+
+        /* Sidebar Animation */
+        #sidebar {
+            transition: transform 0.3s ease;
+            transform: translateX(-100%);
+        }
+
+        @media (min-width: 1024px) {
+            #sidebar {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-visible {
+            transform: translateX(0) !important;
+        }
+
+        /* Main Content Adjustment */
+        main {
+            margin-left: 0;
+            transition: margin 0.3s ease;
+        }
+
+        @media (min-width: 1024px) {
+            main {
+                margin-left: 256px;
+            }
+        }
+
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+
+        @keyframes modalEnter {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e7ff;
+        }
+        #profileDropdown {
+        max-height: calc(100vh - 5rem);
+        overflow-y: auto;
+        top: 4rem;
+        right: 0;
+        z-index: 100;
+    }
+    </style>
+    <style>
+        .notification-success {
+            @apply bg-green-100 text-green-800 border border-green-200;
+        }
+        .notification-error {
+            @apply bg-red-100 text-red-800 border border-red-200;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 h-16 bg-indigo-50 shadow-sm flex items-center justify-between px-6 z-50">
+        <div class="flex items-center space-x-4">
+            <!-- Mobile Menu Button -->
+            <button id="sidebarToggle" class="text-indigo-600 lg:hidden">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="text-indigo-800 text-xl font-bold">TutorFlow Admin</div>
+        </div>
+        
+        <!-- Profile Dropdown -->
+        <div class="relative">
+            <button id="profileBtn" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center ring-2 ring-indigo-100">
+                <i class="fas fa-user text-indigo-600"></i>
+            </button>
+            
+            <div id="profileDropdown" class="hidden absolute right-0 top-12 bg-white rounded-lg shadow-lg w-48 py-2 border border-indigo-100">
+                <a href="ASettings" class="px-4 py-2 text-gray-700 hover:bg-indigo-50 flex items-center">
+                    <i class="fas fa-cog mr-2 text-indigo-600"></i> Settings
+                </a>
+                <form action="/logout" method="POST" class="border-t border-indigo-100 mt-2">
+                    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-indigo-50 flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2 text-indigo-600"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed left-0 top-16 h-full bg-gradient-to-b from-indigo-50 to-indigo-100 w-64 z-40 p-4 border-r border-indigo-200">
+        <nav class="p-4 space-y-2">
+            <a href="/adminHomepage" class="flex items-center text-indigo-800 p-3 hover:bg-indigo-50 rounded-lg">
+                <i class="fas fa-home mr-3 text-indigo-600"></i>
+                Dashboard
+            </a>
+            <a href="/Mfaculty" class="flex items-center text-indigo-800 p-3 rounded-lg bg-indigo-100 border border-indigo-200">
+                <i class="fas fa-chalkboard-teacher mr-3 text-indigo-600"></i>
+                Manage Faculty
+            </a>
+            <a href="/Mstudents" class="flex items-center text-indigo-800 hover:bg-indigo-50 p-3 rounded-lg">
+                <i class="fas fa-users mr-3 text-indigo-600"></i>
+                Manage Students
+            </a>
+
+        </nav>
+        
+        <!-- Bottom Settings/Logout -->
+        <div class="absolute bottom-14 left-0 right-0 p-4 border-t border-indigo-200">
+            <a href="ASettings" class="flex items-center text-indigo-800 hover:bg-indigo-50 p-3 rounded-lg">
+                <i class="fas fa-cog mr-3 text-indigo-600"></i>
+                Settings
+            </a>
+            <form action="/logout" method="POST" class="w-full">
+                <button type="submit" class="flex items-center text-indigo-800 hover:bg-indigo-50 p-3 rounded-lg w-full">
+                    <i class="fas fa-sign-out-alt mr-3 text-indigo-600"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="mt-16 p-8 min-h-screen lg:ml-64">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <h2 class="text-2xl font-bold text-indigo-800">Manage Faculty</h2>
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="relative flex-1">
+                    <input type="text" placeholder="Search faculty..." 
+                        class="pl-10 pr-4 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full"
+                        id="searchInput">
+                    <i class="fas fa-search absolute left-3 top-3 text-indigo-600"></i>
+                </div>
+                <button onclick="openAddFacultyModal()" 
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                    <i class="fas fa-plus mr-2"></i>Add Faculty
+                </button>
+            </div>
+        </div>
+
+        <!-- Faculty List -->
+        <!-- <div class="bg-white rounded-xl shadow-lg overflow-x-auto border border-indigo-100">
+            <table class="w-full">
+                <thead class="bg-indigo-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Photo</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Department</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Subjects</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-indigo-100">
+                    <%for(let faculty of allfaculties){%>
+                    <tr class="hover:bg-indigo-50">
+                        <td class="px-6 py-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <img src="<%=faculty.photo%>" alt="">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-700"><%=faculty.name%></td>
+                        <td class="px-6 py-4 text-gray-700"><%=faculty.department%></td>
+                        <td class="px-6 py-4 text-gray-700"><%=faculty.subjects%></td>
+                        <td class="px-6 py-4 flex gap-2">
+                          <form action="/faculty/<%=faculty._id%>/delete?_method-override=DELETE" method="POST">
+                            <button class="text-indigo-600 hover:text-indigo-700">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                          </form>
+                            <button class="text-red-500 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div> -->
+        <div class="bg-white rounded-xl shadow-lg overflow-x-auto border border-indigo-100">
+            <table class="w-full">
+                <thead class="bg-indigo-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Photo</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Department</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Subjects</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-800">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-indigo-100">
+                    <% for(let faculty of allfaculties) { %>
+                    <tr class="hover:bg-indigo-50" data-faculty-id="<%= faculty._id %>">
+                        <td class="px-6 py-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <img src="<%= faculty.photo %>" alt="<%= faculty.name %>" class="rounded-full">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-700"><%= faculty.name %></td>
+                        <td class="px-6 py-4 text-gray-700"><%= faculty.department %></td>
+                        <td class="px-6 py-4 text-gray-700"><%= faculty.subjects.join(', ') %></td>
+                        <td class="px-6 py-4 flex gap-2">
+                            <button onclick="openEditModal('<%= faculty._id %>')" 
+                                class="text-indigo-600 hover:text-indigo-700">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button    onclick="openDeleteModal('<%= faculty._id %>',` <%= JSON.stringify(faculty.name) %>`)"
+                                    class="text-red-500 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+
+
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 border border-indigo-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-indigo-800">Confirm Delete</h3>
+                    <button onclick="closeDeleteModal()" class="text-indigo-600 hover:text-indigo-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p id="deleteMessage" class="text-gray-700 mb-6"></p>
+                <div class="flex justify-end gap-3">
+                    <button onclick="closeDeleteModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button id="confirmDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Faculty Modal -->
+    <div id="addFacultyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="flex items-center justify-center min-h-screen modal-enter">
+            <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 border border-indigo-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-indigo-800">Add New Faculty</h3>
+                    <button onclick="closeAddFacultyModal()" class="text-indigo-600 hover:text-indigo-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form action="/admin/faculty/add" method="POST" enctype="multipart/form-data">
+                    <div class="space-y-4">
+                        
+
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                                <input type="text" name="name" required 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" name="email" required 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+        
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Password</label>
+                                <input type="password" name="password" required 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+        
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Department</label>
+                                <select name="department" required 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="CSE">Computer Science</option>
+                                    <option value="ECE">Electronics</option>
+                                    <option value="EEE">Electrical</option>
+                                </select>
+                            </div>
+        
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Subjects (comma separated)</label>
+                                <input type="text" name="subjects" required 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+        
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Profile Photo</label>
+                                <input type="file" name="photo" accept="image/*"
+                                    class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            </div>
+        
+
+                            
+                            <div class="flex justify-end gap-3 mt-6">
+                                <button type="button" onclick="closeAddFacultyModal()"
+                                    class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+                            </div>
+                    
+
+        
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+      // Modal Controls
+      function openAddFacultyModal() {
+            document.getElementById('addFacultyModal').classList.remove('hidden');
+        }
+
+        function closeAddFacultyModal() {
+            document.getElementById('addFacultyModal').classList.add('hidden');
+        }
+    const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-visible');
+        });
+
+        // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('sidebar-visible');
+            }
+        });
+
+        // Profile Dropdown Fix
+       // Close dropdown when clicking outside
+       document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+        // Profile Dropdown
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+        
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+        });
+
+        // Responsive Behavior
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('sidebar-visible');
+            }
+        });
+
+            // Search functionality
+  // Search functionality with server-side fetching
+document.getElementById('searchInput').addEventListener('input', async function(e) {
+    const query = e.target.value.trim();
+    
+    if (query === '') {
+        window.location.reload();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/AsearchFaculty?query=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const facultyList = await response.json();
+        updateFacultyTable(facultyList);
+    } catch (error) {
+        console.error('Error fetching search results:', error);
+        // Optional: Show error message to user
+    }
+});
+
+// Updated table update function
+function updateFacultyTable(facultyList) {
+    const tbody = document.querySelector('tbody');
+    tbody.innerHTML = facultyList.map(faculty => `
+        <tr class="hover:bg-indigo-50">
+            <td class="px-6 py-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <img src="${faculty.photo}" alt="${faculty.name}" class="rounded-full">
+                </div>
+            </td>
+            <td class="px-6 py-4 text-gray-700">${faculty.name}</td>
+            <td class="px-6 py-4 text-gray-700">${faculty.department}</td>
+            <td class="px-6 py-4 text-gray-700">${faculty.subjects.join(', ')}</td>
+            <td class="px-6 py-4 flex gap-2">
+                <button onclick="openEditModal('${faculty._id}')" class="text-indigo-600 hover:text-indigo-700">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="openDeleteModal('${faculty._id}', '${faculty.name.replace(/'/g, "\\'")}')" 
+                    class="text-red-500 hover:text-red-600">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+    // Delete functionality
+    let currentDeleteId = null;
+
+    function openDeleteModal(id, name) {
+        currentDeleteId = id;
+        document.getElementById('deleteMessage').textContent = 
+            `Are you sure you want to delete ${name}?`;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        currentDeleteId = null;
+    }
+
+    // document.getElementById('confirmDelete').addEventListener('click', async () => {
+    //     if (!currentDeleteId) return;
+        
+    //     try {
+    //         const response = await fetch(`/admin/faculty/${currentDeleteId}`, {
+    //             method: 'DELETE',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             }
+    //         });
+            
+    //         if (response.ok) {
+    //             window.location.reload();
+    //         } else {
+    //             alert('Failed to delete faculty');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //         alert('Error deleting faculty');
+    //     }
+    //     closeDeleteModal();
+    // });
+
+    // Edit functionality
+    document.getElementById('confirmDelete').addEventListener('click', async () => {
+    if (!currentDeleteId) return;
+    
+    try {
+        const response = await fetch(`/admin/faculty/${currentDeleteId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            // Remove deleted row from DOM
+            document.querySelector(`tr[data-faculty-id="${currentDeleteId}"]`).remove();
+            // Show success feedback
+            showNotification('Faculty deleted successfully', 'success');
+            location.reload();
+        } else {
+            showNotification('Failed to delete faculty', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error deleting faculty', 'error');
+    }
+    closeDeleteModal();
+});
+    // async function openEditModal(id) {
+    //     const faculty = allfaculties.find(f => f.id === id);
+    //     if (!faculty) return;
+
+    //     const form = document.querySelector('#addFacultyModal');
+    //     form.action = `/admin/faculty/${id}/edit?_methodOverride=PUT`;
+    //     form.querySelector('[name="name"]').value = faculty.name;
+    //     form.querySelector('[name="email"]').value = faculty.email;
+    //     form.querySelector('[name="department"]').value = faculty.department;
+    //     form.querySelector('[name="subjects"]').value = faculty.subjects;
+        
+    //     // Add hidden input for PUT method
+    //     if (!form.querySelector('input[name="_method"]')) {
+    //         const methodInput = document.createElement('input');
+    //         methodInput.type = 'hidden';
+    //         methodInput.name = '_method';
+    //         methodInput.value = 'PUT';
+    //         form.appendChild(methodInput);
+    //     }
+        
+    //     document.getElementById('addFacultyModal').classList.remove('hidden');
+    // }
+// Edit functionality
+async function openEditModal(id) {
+    try {
+        // Fetch faculty data from server
+        const response = await fetch(`/admin/faculty/${id}`);
+        if (!response.ok) throw new Error('Failed to fetch faculty data');
+        
+        const faculty = await response.json();
+        
+        const form = document.querySelector('#addFacultyModal form');
+        form.action = `/admin/faculty/${id}?_method=PUT`;
+        
+        // Update form fields
+        form.querySelector('[name="name"]').value = faculty.name;
+        form.querySelector('[name="email"]').value = faculty.email;
+        form.querySelector('[name="department"]').value = faculty.department;
+        form.querySelector('[name="subjects"]').value = faculty.subjects.join(', ');
+        
+        // Handle existing photo display
+        const photoPreview = document.createElement('div');
+        photoPreview.innerHTML = `
+            <p class="mt-2 text-sm text-gray-500">Current Photo:</p>
+            <img src="${faculty.photo}" alt="Current photo" class="mt-1 w-20 h-8 rounded-full">
+        `;
+        form.querySelector('[name="photo"]').parentNode.appendChild(photoPreview);
+
+        // Handle method override
+        let methodInput = form.querySelector('input[name="_method"]');
+        if (!methodInput) {
+            methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            form.appendChild(methodInput);
+        }
+        methodInput.value = 'PUT';
+        
+        document.getElementById('addFacultyModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        showNotification('Failed to load faculty data', 'error');
+    }
+}
+</script>
+
+
+<div id="notification" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg hidden"></div>
+
+
+
+<script>
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg notification-${type}`;
+        notification.textContent = message;
+        notification.classList.remove('hidden');
+        
+        setTimeout(() => {
+            notification.classList.add('hidden');
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>

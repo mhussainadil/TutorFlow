@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify OTP - TutorFlow</title>
+    <link rel="icon" href=
+    "/uploads/tutorflow-img.webp"
+            type="image/x-icon"  class="rounded-full"/>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="/css/output.css" rel="stylesheet">
+
+    <style>
+        .otp-input {
+            width: 3.5rem;
+            height: 3.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .otp-input:focus {
+            outline: 2px solid #4F46E5;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-100">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Verify Your Email</h2>
+            <p class="text-gray-600">Enter the 6-digit code sent to your email</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="bg-red-50 text-red-700 p-3 rounded-lg mb-4 text-sm">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/verify?type=<%=type%>" method="POST" id="otpForm">
+            <div class="flex justify-center gap-3  mb-8">
+                <% for(let i=0; i<6; i++) { %>
+                    <input type="text" 
+                           name="code<%= i %>"
+                           maxlength="1"
+                           required
+                           class="otp-input border border-gray-300  rounded-lg focus:border-indigo-500"
+                           data-index="<%= i %>">
+                <% } %>
+                <input type="hidden" name="code" id="fullOtp">
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                Verify Account
+            </button>
+        </form>
+
+        <p class="text-center mt-6 text-gray-600 text-sm">
+            Didn't receive code? 
+            <a href="/" class="text-indigo-600 hover:underline">Resend OTP</a>
+        </p>
+    </div>
+
+    <script>
+        const form = document.getElementById('otpForm');
+        const inputs = document.querySelectorAll('.otp-input');
+        const hiddenInput = document.getElementById('fullOtp');
+
+        // Handle input navigation
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                // Auto-advance to next input
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                
+                // Auto-submit when all fields filled
+                if (index === inputs.length - 1 && e.target.value.length === 1) {
+                    updateHiddenInput();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Update hidden input before submission
+        form.addEventListener('submit', (e) => {
+            updateHiddenInput();
+            if (!/^\d{6}$/.test(hiddenInput.value)) {
+                e.preventDefault();
+                alert('Please enter a valid 6-digit code');
+            }
+        });
+
+        function updateHiddenInput() {
+            hiddenInput.value = Array.from(inputs)
+                .map(input => input.value)
+                .join('');
+        }
+    </script>
+</body>
+</html>

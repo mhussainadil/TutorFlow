@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href=
+  "/uploads/tutorflow-img.webp"
+          type="image/x-icon"  class="rounded-full"/>
+  <title>Faculty List - TutorFlow</title>
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <link href="/css/output.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .photo-upload-trigger:hover .camera-overlay {
+  opacity: 1;
+}
+        .status-led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      position: relative;
+      box-shadow: 0 0 4px currentColor;
+      animation: pulse 2s infinite;
+      background-color: currentColor;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.8; }
+      50% { opacity: 0.3; box-shadow: 0 0 8px currentColor; }
+      100% { opacity: 0.8; }
+    }
+
+    @media (max-width: 1220px) {
+    td:last-child a, 
+    td:last-child button {
+      font-size: 0.875rem; /* 14px */
+      padding: 8px 12px;
+    }    
+    /* .status-led {
+      width: 10px;
+      height: 10px;
+    } */
+  }
+    .status-available { color: #10B981; }
+    .status-busy { color: #F59E0B; }
+    .status-unavailable { color: #EF4444; }
+    #notifications-menu {
+  
+  position: fixed;
+  top: 27%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 95%;
+  max-width: 640px;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+  max-height: 70vh;
+  overflow-y: auto;
+  /* box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); */
+}
+  </style>
+  <script>
+
+
+
+
+    let profileMenuOpen = false;
+
+
+    function toggleProfileMenu(event) {
+      event.stopPropagation();
+      const menu = document.getElementById('profile-menu');
+      profileMenuOpen = !profileMenuOpen;
+      menu.classList.toggle('hidden', !profileMenuOpen);
+    }
+
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('profile-menu');
+      const profileBtn = document.querySelector('[aria-label="Profile menu"]');
+      
+      if (!profileBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+        profileMenuOpen = false;
+      }
+    });
+     // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+  </script>
+</head>
+<body class="bg-gray-50">
+  <!-- Header -->
+  <header class="bg-indigo-50 shadow-sm fixed w-full z-40">
+    <nav class="px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center lg:hidden">
+          <button onclick="toggleSidebar()" class="p-2 text-indigo-600 hover:text-indigo-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="flex items-center">
+          <a href="/dashboard" class="text-2xl font-bold text-indigo-600">TutorFlow</a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <!-- <div class="relative"> -->
+            <button onclick="toggleNotifications()" class="p-2 text-indigo-600 hover:text-indigo-800 relative">
+              <i class="fas fa-bell text-xl"></i>
+              <% if (unreadCount > 0) { %>
+                <span class="notification-badge absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              <% } %>
+            </button>
+            <div id="notifications-menu" class="hidden absolute right-4 top-12 mt-2 bg-indigo-50 w-64  rounded-lg shadow-lg py-2 z-50">
+              <div class="px-4 py-2 text-sm font-semibold text-indigo-900 border-b">Notifications</div>
+              <div class="max-h-60 overflow-y-auto">
+                <% if (notifications.length === 0) { %>
+                  <p class="px-4 py-2 text-gray-500 text-sm">No notifications</p>
+                <% } else { %>
+                  <% notifications.forEach(notification => { %>
+                    <div class="px-4 py-2 hover:bg-indigo-50 <%= !notification.read ? 'bg-indigo-50' : '' %>">
+                      <p class="text-sm text-gray-700">
+                        <% if (notification.recipientModel === 'Student') { %>
+                          <i class="fas fa-chalkboard-teacher mr-2 text-indigo-600"></i>
+                        <% } else { %>
+                          <i class="fas fa-user-graduate mr-2 text-indigo-600"></i>
+                        <% } %>
+                        <%= notification.message %>
+                      </p>
+                      <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                        <span>
+                          <i class="fas fa-clock mr-1"></i>
+                          <%= moment(notification.createdAt).fromNow() %>
+                        </span>
+                        <% if (notification.relatedAppointment) { %>
+                          <a href="/appointments/<%= notification.relatedAppointment._id %>" class="text-indigo-600 hover:underline">
+                            View
+                          </a>
+                        <% } %>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } %>
+              </div>
+              <div class="border-t px-4 py-2">
+                <a href="/notifications" class="text-indigo-600 text-sm hover:underline">View all</a>
+                <button onclick="markAllAsRead()" class="float-right text-gray-500 text-sm hover:text-indigo-600">
+                  Mark all read
+                </button>
+              </div>
+            </div>
+            
+            <div class="relative">
+              <button aria-label="Profile menu" onclick="toggleProfileMenu(event)"
+                class="flex items-center focus:outline-none ring-2 ring-indigo-100 rounded-full">
+  
+                <img src="<%= user.profilePhoto %>" onerror="this.onerror=null;this.src='/uploads/default-avatar.png';"
+                  class="w-10 h-10 rounded-full object-cover">
+  
+              </button>
+  
+              <div id="profile-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+                <a href="#" onclick="openProfileModal()"
+                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+                  <i class="fas fa-user mr-2 text-sm"></i>Profile
+                </a>
+  
+                <a href="/settings" class="flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+                  <i class="fas fa-cog mr-2 text-sm"></i>Settings
+                </a>
+                <form action="/logout" method="POST" class="border-t border-gray-100">
+                  <button type="submit" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+                    <i class="fas fa-sign-out-alt mr-2 text-sm"></i>Logout
+                  </button>
+                </form>
+              </div>
+            </div>
+          <!-- </div> -->
+      
+
+         
+        </div>
+      </div>
+    </nav>
+  </header>
+
+<!-- sidebar -->
+
+  <aside id="sidebar" class="w-64 h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 fixed p-6 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out z-30 border-r border-indigo-200">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-indigo-800 text-2xl font-bold">TutorFlow</h1>
+      <button onclick="toggleSidebar()" class="lg:hidden text-indigo-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <nav class="space-y-2">
+      <a href="/dashboard" class="flex items-center text-indigo-800 p-3 rounded-lg <%= currentPage === 'dashboard' ? 'bg-indigo-100 border border-indigo-200' : 'hover:bg-indigo-50' %>">
+        <i class="fas fa-home mr-3 text-indigo-600"></i>
+        Dashboard
+      </a>
+      <a href="/studviewfaculty" class="flex items-center text-indigo-800 p-3 rounded-lg bg-indigo-100 border border-indigo-200">
+        <i class="fas fa-users mr-3 text-indigo-600"></i>
+        Faculty List
+      </a>
+    </nav>
+
+    <div class="absolute bottom-6 left-0 right-0 px-6">
+      <a href="/settings" class="flex items-center text-indigo-800 p-3 rounded-lg hover:bg-indigo-50">
+        <i class="fas fa-cog mr-3 text-indigo-600"></i>
+        Settings
+      </a>
+      <form action="/logout" method="POST" class="flex items-center text-indigo-800 w-full p-3 rounded-lg hover:bg-indigo-50">
+        <button type="submit" class="flex items-center">
+          <i class="fas fa-sign-out-alt mr-3 text-indigo-600"></i>
+          Logout
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content" class="flex-1 p-8 pt-24 lg:ml-64 lg:pt-20 min-h-screen transition-margin duration-200 ease-in-out">
+    <!-- Search Header -->
+    <div class="max-w-5xl mx-auto mb-8">
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-indigo-900 mb-6">Find Your Faculty</h2>
+        
+        <form class="flex flex-wrap gap-4">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="Search by name, branch, or subject"
+            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+          <!-- <button 
+            type="submit"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Search
+          </button> -->
+        </form>
+      </div>
+    </div>
+
+    <div id="profile-modal" class="hidden fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+        <div
+          class="bg-indigo-50 px-6 py-4 rounded-t-xl flex justify-between items-center border-b border-indigo-100">
+          <h2 class="text-xl font-semibold text-indigo-900">Student Profile</h2>
+          <button onclick="closeProfileModal()" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6">
+          <div class="flex flex-col md:flex-row gap-6">
+            <div class="w-full md:w-1/3 flex flex-col items-center">
+              <!-- <form id="studentPhotoForm " enctype="multipart/form-data" class="relative group">
+    
+                <div class="relative photo-upload-trigger cursor-pointer">
+                  <input type="file" id="studentPhotoInput" name="photo" hidden accept="image/*">
+                  <img src="<%= user.profilePhoto %>"
+                    class="student-preview-image w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+                  <div
+                    class="camera-overlay absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200">
+                    <i class="fas fa-camera text-white text-2xl"></i>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-3 text-center cursor-pointer photo-upload-trigger">Edit Photo</p>
+   
+              </form> -->
+
+              <form id="studentPhotoForm" enctype="multipart/form-data" class="relative group">
+                <div class="relative photo-upload-trigger cursor-pointer">
+                  <input type="file" id="studentPhotoInput" name="photo" hidden accept="image/*">
+                  <img src="<%= user.profilePhoto %>" 
+                       onerror="this.onerror=null;this.src='/uploads/default-avatar.jpg';"
+                       class="student-preview-image w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+                  <div class="camera-overlay absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200">
+                    <i class="fas fa-camera text-white text-2xl"></i>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-3 text-center cursor-pointer photo-upload-trigger">Edit Photo</p>
+              </form>
+              
+
+            </div>
+
+            <div class="w-full md:w-2/3 space-y-4">
+              <div>
+                <!-- <h1 class="text-2xl font-bold text-indigo-900">
+                  <%= user.fullName %>
+                </h1> -->
+                <!-- Update name display section -->
+                <div class="flex items-center gap-2 group">
+                  <h1 id="fullNameDisplay" class="text-2xl font-bold text-indigo-900">
+                    <%= user.fullName %>
+                  </h1>
+                  <button onclick="toggleNameEdit()" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fas fa-edit text-sm text-indigo-600 hover:text-indigo-800"></i>
+                  </button>
+                </div>
+                <input type="text" id="fullNameInput" name="fullName"
+                  class="hidden absolute bg-white p-2 border rounded-lg shadow-sm" value="<%= user.fullName %>">
+                <p class="text-sm pt-4 text-indigo-600">Student</p>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex items-center">
+                  <i class="fas fa-id-card text-indigo-600 w-6"></i>
+                  <span class="text-gray-700">
+                    <%= user.rollNo %>
+                  </span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-university text-indigo-600 w-6"></i>
+                  <span class="text-gray-700">
+                    <%= user.department %>
+                  </span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-calendar-alt text-indigo-600 w-6"></i>
+                  <span class="text-gray-700">Year <%= user.yearOfStudy %> - Semester <%= user.semester %></span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-envelope text-indigo-600 w-6"></i>
+                  <span class="text-gray-700">
+                    <%= user.email %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3 border-t border-indigo-100 pt-4">
+            <button onclick="closeProfileModal()"
+              class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button onclick="saveStudentProfile()"
+              class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+              <i class="fas fa-save mr-2"></i>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Faculty List -->
+   
+    <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+      <table class="w-full">
+          <thead class="bg-indigo-50">
+              <tr>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Photo</th>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Name</th>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Department</th>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Subjects</th>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Status</th>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-600">Actions</th>
+              </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% for(let faculty of allfaculties){ %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
+                  <img src="<%=faculty.photo%>" alt="<%=faculty.name%>" class="w-full h-full object-cover">
+                </div>
+              </td>
+              <td class="px-6 py-4"><%=faculty.name%></td>
+              <td class="px-6 py-4"><%=faculty.department%></td>
+              <td class="px-6 py-4"><%=faculty.subjects%></td>
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <% let statusClass = 'status-available';
+                     let statusText = 'Available';
+                     if(faculty.status === 'busy') {
+                       statusClass = 'status-busy';
+                       statusText = 'Busy';
+                     } else if(faculty.status === 'unavailable') {
+                       statusClass = 'status-unavailable';
+                       statusText = 'Unavailable';
+                     }
+                  %>
+                  <span class="status-led <%= statusClass %>"></span>
+                  <span class="text-sm font-medium text-gray-700"><%= statusText %></span>
+                </div>
+              </td>
+            <td class="px-6 py-4">
+  <% if(faculty.status === 'unavailable') { %>
+    <button class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
+      Get Appointment
+    </button>
+  <% } else { %>
+    <a href="/faculty/<%= faculty._id %>" 
+       class="px-4 py-2 text-white rounded-lg transition-colors
+         <%= faculty.status === 'available' 
+           ? 'bg-indigo-600 hover:bg-indigo-700' 
+           : 'bg-orange-500 hover:bg-orange-600' %>">
+      <%= faculty.status === 'busy' ? 'Join Waitlist' : 'Get Appointment' %>
+    </a>
+  <% } %>
+</td>
+            </tr>
+            <% } %>
+          </tbody>
+      </table>
+  </div>
+
+  </main>
+  <script>
+document.querySelector("input[name='search']").addEventListener("input", async function () {
+    let query = this.value.trim(); // Get search input
+
+    if (query === "") {
+
+        location.reload(); // Reset table when input is cleared
+        return;
+    }
+    // if (query.length === 0) {
+    //     document.getElementById("facultyTableBody").innerHTML = ""; // Clear table if empty input
+    //     return;
+    // }
+    try {
+        let response = await fetch(`/searchFaculty?query=${query}`);
+        let faculties = await response.json();
+
+        
+        updateFacultyTable(faculties);
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+    }
+});
+
+// Function to update table dynamically
+function updateFacultyTable(faculties) {
+    let tbody = document.querySelector("tbody");
+    tbody.innerHTML = ""; // Clear old data
+
+    faculties.forEach(faculty => {
+        let statusClass = faculty.status === 'busy' ? 'status-busy' : 
+                          faculty.status === 'unavailable' ? 'status-unavailable' : 'status-available';
+        let statusText = faculty.status.charAt(0).toUpperCase() + faculty.status.slice(1);
+        
+        let row = `<tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
+                    <img src="${faculty.photo}" alt="${faculty.name}" class="w-full h-full object-cover">
+                </div>
+            </td>
+            <td class="px-6 py-4">${faculty.name}</td>
+            <td class="px-6 py-4">${faculty.department}</td>
+            <td class="px-6 py-4">${faculty.subjects}</td>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <span class="status-led ${statusClass}"></span>
+                    <span class="text-sm font-medium text-gray-700">${statusText}</span>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                ${faculty.status === 'unavailable' ? `
+                    <button class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
+                        Request Appointment
+                    </button>` : `
+                    <a href="/faculty/${faculty._id}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        ${faculty.status === 'busy' ? 'Join Waitlist' : 'Get Appointment'}
+                    </a>`}
+            </td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+    console.log('Received faculty data:', faculties);
+}
+
+  
+  function toggleProfileMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('profile-menu');
+    menu.classList.toggle('hidden');
+    profileMenuOpen = !menu.classList.contains('hidden');
+  }
+
+  // Add menu item click handler
+  document.querySelectorAll('#profile-menu a, #profile-menu button').forEach(item => {
+    item.addEventListener('click', () => {
+      document.getElementById('profile-menu').classList.add('hidden');
+      profileMenuOpen = false;
+    });
+  });
+  
+// Add name edit functionality
+function toggleNameEdit() {
+const display = document.getElementById('fullNameDisplay');
+const input = document.getElementById('fullNameInput');
+
+if (input.classList.contains('hidden')) {
+  input.style.left = `${display.offsetLeft}px`;
+  input.style.top = `${display.offsetTop}px`;
+  input.classList.remove('hidden');
+  input.focus();
+} else {
+  input.classList.add('hidden');
+}
+}
+
+
+
+
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('main-content');
+    sidebar.classList.toggle('-translate-x-full');
+    content.classList.toggle('lg:ml-64');
+  }
+
+
+  // Close profile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('profile-menu');
+    const profileBtn = document.querySelector('[aria-label="Profile menu"]');
+
+    if (!profileBtn.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add('hidden');
+      profileMenuOpen = false;
+    }
+  });
+  function openProfileModal() {
+    document.getElementById('profile-modal').classList.remove('hidden');
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+  }
+
+  function closeProfileModal() {
+    document.getElementById('profile-modal').classList.add('hidden');
+    document.getElementById('modal-backdrop').classList.add('hidden');
+  }
+
+  // Handle photo upload preview
+  document.addEventListener('DOMContentLoaded', () => {
+    const photoInput = document.getElementById('studentPhotoInput');
+    const previewImage = document.querySelector('.student-preview-image');
+
+    photoInput.addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          previewImage.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+  
+
+
+async function saveStudentProfile() {
+const form = document.getElementById('studentPhotoForm'); 
+const formData = new FormData(form);
+
+
+try {
+  const response = await fetch('/update-profile', {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (response.ok) {
+    location.reload();
+  } else {
+    console.error('Profile update failed');
+  }
+} catch (error) {
+  console.error('Error:', error);
+}
+}
+
+// Initialize photo upload triggers
+document.addEventListener('DOMContentLoaded', () => {
+// Trigger file input when clicking on photo area
+document.querySelectorAll('.photo-upload-trigger').forEach(element => {
+  element.addEventListener('click', (e) => {
+    document.getElementById('studentPhotoInput').click();
+  });
+});
+
+// Handle file selection
+const photoInput = document.getElementById('studentPhotoInput');
+const previewImage = document.querySelector('.student-preview-image');
+
+photoInput.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewImage.src = e.target.result;
+    }
+    reader.readAsDataURL(file);
+  }
+});
+});
+
+  // Toggle notifications dropdown
+// Update the toggleNotifications function
+function toggleNotifications() {
+  const menu = document.getElementById('notifications-menu');
+  menu.classList.toggle('hidden');
+  
+  // Close other open menus
+  document.getElementById('profile-menu').classList.add('hidden');
+}
+
+// Close notifications when clicking outside
+document.addEventListener('click', (e) => {
+  const notificationsButton = document.querySelector('[onclick="toggleNotifications()"]');
+  const notificationsMenu = document.getElementById('notifications-menu');
+  
+  if (!notificationsButton.contains(e.target) && !notificationsMenu.contains(e.target)) {
+    notificationsMenu.classList.add('hidden');
+  }
+});
+
+
+// Mark all as read with confirmation
+async function markAllAsRead() {
+  try {
+    const response = await fetch('/notifications/mark-read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.ok) {
+      document.querySelectorAll('.notification-item').forEach(item => {
+        item.classList.remove('bg-indigo-50');
+      });
+      document.querySelector('.notification-badge').classList.add('hidden');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+let eventSource;
+
+function setupSSE() {
+  if (typeof EventSource !== 'undefined') {
+    eventSource = new EventSource('/notifications/stream');
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const badge = document.querySelector('.notification-badge');
+      
+      if (data.unreadCount > 0) {
+        badge.classList.remove('hidden');
+        badge.textContent = data.unreadCount > 9 ? '9+' : data.unreadCount;
+      } else {
+        badge.classList.add('hidden');
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE Error:', error);
+      eventSource.close();
+      setTimeout(setupSSE, 5000); // Reconnect after 5 seconds
+    };
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', setupSSE);
+
+
+  </script>
+</body>
+</html>

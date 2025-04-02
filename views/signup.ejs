@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Signup - TutorFlow</title>
+  <link rel="icon" href=
+  "/uploads/tutorflow-img.webp"
+          type="image/x-icon"  class="rounded-full"/>
+  <link rel="icon" href=
+  "/uploads/tutorflow-img.webp"
+          type="image/x-icon"  class="rounded-full"/>
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <link href="/css/output.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .password-strength {
+      height: 4px;
+      transition: all 0.3s ease;
+    }
+    .strength-weak { background: #ef4444; width: 25%; }
+    .strength-medium { background: #f59e0b; width: 50%; }
+    .strength-strong { background: #10b981; width: 75%; }
+    .strength-very-strong { background: #3b82f6; width: 100%; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
+    <div class="text-center mb-6">
+      <img src="/uploads/tutorflow-img.webp" alt="TutorFlow Logo" class="h-16 mx-auto mb-4 rounded-full">
+      <h2 class="text-3xl font-bold text-indigo-600">Student Registration</h2>
+      <p class="text-gray-600 mt-2">Join our learning community</p>
+    </div>
+    
+    <% if (error) { %>
+      <div class="bg-red-100 p-3 mb-4 rounded-lg text-red-700 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i><%= error %>
+      </div>
+    <% } %>
+    
+    <form action="/signup" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <div class="space-y-4">
+        <!-- Profile Photo Upload -->
+        <div class="flex items-center justify-center mb-4">
+          <div class="relative">
+            <img id="previewAvatar" src="/default-avatar.png" 
+                 class="w-24 h-24 rounded-full border-4 border-indigo-100 cursor-pointer">
+            <input type="file" name="profilePhoto" id="avatarInput" accept="image/*" 
+                   class="hidden" onchange="previewImage(event)">
+            <label for="avatarInput" 
+                   class="absolute bottom-0 right-0 bg-indigo-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-indigo-700">
+              <i class="fas fa-camera text-sm"></i>
+            </label>
+          </div>
+        </div>
+
+        <!-- Form Fields -->
+        <input type="text" name="fullName" placeholder="Full Name" required
+               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 placeholder-gray-400">
+
+        <input type="text" name="rollNo" placeholder="Roll Number (10-15 characters)" required
+               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+               minlength="10" maxlength="15" pattern="[A-Za-z0-9]+">
+
+        <select name="department" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+          <option value="">Select Department</option>
+          <option>Computer Science</option>
+          <option>Electrical Engineering</option>
+          <option>Mechanical Engineering</option>
+          <option>Civil Engineering</option>
+        </select>
+
+        <div class="grid grid-cols-2 gap-4">
+          <select name="yearOfStudy" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="">Study Year</option>
+            <option>1st Year</option>
+            <option>2nd Year</option>
+            <option>3rd Year</option>
+            <option>4th Year</option>
+          </select>
+
+          <select name="semester" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="">Semester</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+          </select>
+        </div>
+
+        <input type="email" name="email" placeholder="Student Email" required
+               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 placeholder-gray-400">
+
+        <!-- Password Section -->
+        <div class="relative">
+          <input type="password" name="password" id="password" placeholder="Password (min 8 characters)" required
+                 class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                 minlength="8" onkeyup="checkPasswordStrength(this.value)">
+          <div id="passwordStrength" class="mt-2 hidden">
+            <div class="password-strength rounded-full"></div>
+            <p class="text-xs mt-1" id="strengthText"></p>
+          </div>
+        </div>
+
+        <div class="relative">
+          <input type="password" name="confirmPassword" id="confirmPassword" 
+                 placeholder="Confirm Password" required
+                 class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                 minlength="8" onkeyup="checkPasswordMatch()">
+          <div id="passwordMatch" class="absolute right-3 top-3 hidden">
+            <i class="fas fa-check-circle text-green-500"></i>
+            <i class="fas fa-times-circle text-red-500"></i>
+          </div>
+          <p id="matchMessage" class="text-xs mt-1"></p>
+        </div>
+      </div>
+
+      <button class="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
+        Create Student Account
+      </button>
+      
+      <p class="text-center text-gray-600 mt-4">
+        Already have an account? 
+        <a href="/slogin" class="text-indigo-600 hover:underline font-medium">Login here</a>
+      </p>
+    </form>
+  </div>
+
+  <script>
+    // Image Preview Function
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        const preview = document.getElementById('previewAvatar');
+        preview.src = reader.result;
+      }
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // Password Strength Checker
+    function checkPasswordStrength(password) {
+      const strengthBar = document.querySelector('.password-strength');
+      const strengthText = document.getElementById('strengthText');
+      const strengthContainer = document.getElementById('passwordStrength');
+      
+      strengthContainer.classList.remove('hidden');
+      
+      const strength = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /\d/.test(password),
+        special: /[^A-Za-z0-9]/.test(password)
+      };
+
+      const strengthLevel = Object.values(strength).filter(Boolean).length;
+      
+      strengthBar.className = 'password-strength rounded-full ';
+      if (strengthLevel < 2) {
+        strengthBar.classList.add('strength-weak');
+        strengthText.textContent = 'Weak Password';
+        strengthText.className = 'text-xs mt-1 text-red-500';
+      } else if (strengthLevel < 4) {
+        strengthBar.classList.add('strength-medium');
+        strengthText.textContent = 'Medium Strength';
+        strengthText.className = 'text-xs mt-1 text-yellow-500';
+      } else if (strengthLevel < 5) {
+        strengthBar.classList.add('strength-strong');
+        strengthText.textContent = 'Strong Password';
+        strengthText.className = 'text-xs mt-1 text-green-500';
+      } else {
+        strengthBar.classList.add('strength-very-strong');
+        strengthText.textContent = 'Very Strong!';
+        strengthText.className = 'text-xs mt-1 text-indigo-600';
+      }
+    }
+
+    // Password Match Checker
+    function checkPasswordMatch() {
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const matchMessage = document.getElementById('matchMessage');
+      const icons = document.getElementById('passwordMatch');
+
+      icons.classList.remove('hidden');
+      
+      if (password === confirmPassword && password !== '') {
+        icons.querySelector('.fa-times-circle').classList.add('hidden');
+        icons.querySelector('.fa-check-circle').classList.remove('hidden');
+        matchMessage.textContent = 'Passwords match!';
+        matchMessage.className = 'text-xs mt-1 text-green-500';
+      } else {
+        icons.querySelector('.fa-check-circle').classList.add('hidden');
+        icons.querySelector('.fa-times-circle').classList.remove('hidden');
+        matchMessage.textContent = 'Passwords do not match';
+        matchMessage.className = 'text-xs mt-1 text-red-500';
+      }
+    }
+  </script>
+</body>
+</html>

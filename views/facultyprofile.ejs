@@ -1,0 +1,198 @@
+    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=
+    "/uploads/tutorflow-img.webp"
+            type="image/x-icon"  class="rounded-full"/>
+    <title>Faculty Profile - TutorFlow</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="/css/output.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profile-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 95%;
+            max-width: 640px;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            z-index: 1000;
+        }
+
+        @keyframes modalIn {
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 4px currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 0.3; box-shadow: 0 0 8px currentColor; }
+            100% { opacity: 0.8; }
+        }
+
+        .status-available { color: #10B981; }
+        .status-busy { color: #F59E0B; }
+        .status-unavailable { color: #EF4444; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Profile Modal -->
+    <div class="profile-modal">
+        <div class="bg-indigo-50 px-6 py-4 rounded-t-lg flex justify-between items-center border-b border-indigo-100">
+            <h2 class="text-xl font-semibold text-indigo-900">Faculty Profile</h2>
+            <button onclick="closeProfile()" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Photo Section -->
+                <div class="w-full md:w-1/3 flex flex-col items-center">
+                    <form id="photoForm" enctype="multipart/form-data" class="relative group">
+                        <input type="file" id="photoInput" name="photo" hidden accept="image/*">
+                        <div class="relative">
+                            <img src="<%= faculty.photo %>" 
+                                 class="w-32 h-32 rounded-full object-cover border-4 border-indigo-100 cursor-pointer shadow-lg hover:border-indigo-200 transition-all"
+                                 onclick="document.getElementById('photoInput').click()">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-camera text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-3 text-center">Click to change photo</p>
+                    </form>
+                </div>
+
+                <!-- Info Section -->
+                <div class="w-full md:w-2/3 space-y-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-indigo-900"><%= faculty.name %></h1>
+                        <p class="text-sm text-indigo-600">Faculty Member</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-university text-indigo-600 w-6"></i>
+                            <span class="text-gray-700"><%= faculty.department %></span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-book-open text-indigo-600 w-6"></i>
+                            <span class="text-gray-700"><%= faculty.subjects.join(', ') %></span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-indigo-600 w-6"></i>
+                            <span class="text-gray-700"><%= faculty.email %></span>
+                        </div>
+                    </div>
+
+                    <!-- Status Section -->
+                    <div class="pt-4">
+                        <h3 class="text-sm font-semibold text-indigo-900 mb-3">CURRENT STATUS</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <% const statuses = [
+                                { value: 'available', label: 'Available', icon: 'fa-check', color: 'bg-emerald-100 text-emerald-800' },
+                                { value: 'busy', label: 'Busy', icon: 'fa-briefcase', color: 'bg-amber-100 text-amber-800' },
+                                { value: 'unavailable', label: 'Unavailable', icon: 'fa-times', color: 'bg-red-100 text-red-800' }
+                            ] %>
+                            <% statuses.forEach(status => { %>
+                                <button 
+                                    onclick="updateStatus('<%= status.value %>')"
+                                    class="flex items-center px-4 py-2 rounded-lg <%= status.color %> <%= faculty.status === status.value ? 'ring-2 ring-indigo-300' : '' %> transition-all"
+                                >
+                                    <i class="fas <%= status.icon %> mr-2"></i>
+                                    <%= status.label %>
+                                    <% if(faculty.status === status.value) { %>
+                                        <span class="status-led ml-2 <%= `status-${status.value}` %>"></span>
+                                    <% } %>
+                                </button>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 flex justify-end gap-3 border-t border-indigo-100 pt-4">
+                <button onclick="closeProfile()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button onclick="saveChanges()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+                    <i class="fas fa-save mr-2"></i>
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Photo Upload Handling
+        document.getElementById('photoInput').addEventListener('change', function() {
+            const formData = new FormData(document.getElementById('photoForm'));
+            fetch('/update-photo', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if(response.ok) location.reload();
+            });
+        });
+        // Photo Upload Handling
+        document.getElementById('photoInput').addEventListener('change', function() {
+            document.getElementById('photoForm').submit();
+        });
+        // Status Management
+        let currentStatus = '<%= faculty.status %>';
+        
+        function updateStatus(newStatus) {
+            currentStatus = newStatus;
+            document.querySelectorAll('[onclick^="updateStatus"]').forEach(btn => {
+                const isActive = btn.getAttribute('onclick').includes(`'${newStatus}'`);
+                btn.classList.toggle('ring-2', isActive);
+                btn.classList.toggle('ring-indigo-300', isActive);
+            });
+        }
+
+        // Save Changes
+        async function saveChanges() {
+            try {
+                const response = await fetch('/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: currentStatus })
+                });
+                if(response.ok) {
+                    closeProfile();
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Close Profile
+        function closeProfile() {
+            document.querySelector('.profile-modal').style.opacity = '0';
+            setTimeout(() => window.history.back(), 300);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="<%= settings.language %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=
+    "/uploads/tutorflow-img.webp"
+            type="image/x-icon"  class="rounded-full"/>
+    <title>Student Settings - TutorFlow</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="/css/output.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<style>
+    .status-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  position: relative;
+  box-shadow: 0 0 4px currentColor;
+  animation: pulse 2s infinite;
+  background-color: currentColor;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 0.3; box-shadow: 0 0 8px currentColor; }
+  100% { opacity: 0.8; }
+}
+
+@media (max-width: 1220px) {
+td:last-child a, 
+td:last-child button {
+  font-size: 0.875rem; /* 14px */
+  padding: 8px 12px;
+}    
+/* .status-led {
+  width: 10px;
+  height: 10px;
+} */
+}
+.status-available { color: #10B981; }
+.status-busy { color: #F59E0B; }
+.status-unavailable { color: #EF4444; }
+
+
+
+
+
+</style>
+<script>
+let profileMenuOpen = false;
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const content = document.getElementById('main-content');
+  sidebar.classList.toggle('-translate-x-full');
+  content.classList.toggle('lg:ml-64');
+}
+
+function toggleProfileMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('profile-menu');
+  profileMenuOpen = !profileMenuOpen;
+  menu.classList.toggle('hidden', !profileMenuOpen);
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('profile-menu');
+  const profileBtn = document.querySelector('[aria-label="Profile menu"]');
+  
+  if (!profileBtn.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.add('hidden');
+    profileMenuOpen = false;
+  }
+});
+ // Close sidebar on mobile when clicking outside
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth < 1024 && 
+            !sidebar.contains(e.target) && 
+            !sidebarToggle.contains(e.target)) {
+            sidebar.classList.add('-translate-x-full');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const updateBtn = document.getElementById('updateLangBtn');
+    const languageSelect = document.getElementById('languageSelect');
+
+    updateBtn.addEventListener('click', async () => {
+        const newLang = languageSelect.value;
+        
+        try {
+            const response = await fetch('/update-student-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: newLang })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                location.reload(); // Reload to apply language change
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Update failed:', error);
+        }
+    });
+});
+
+
+
+
+
+
+    function toggleProfileMenu(event) {
+      event.stopPropagation();
+      const menu = document.getElementById('profile-menu');
+      profileMenuOpen = !profileMenuOpen;
+      menu.classList.toggle('hidden', !profileMenuOpen);
+    }
+
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('profile-menu');
+      const profileBtn = document.querySelector('[aria-label="Profile menu"]');
+      
+      if (!profileBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+        profileMenuOpen = false;
+      }
+    });
+     // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+  
+
+</script>
+
+</head>
+<body class="bg-gray-50">
+<!-- Header -->
+<header class="bg-indigo-50 shadow-sm fixed w-full z-40">
+<nav class="px-4 sm:px-6 lg:px-8">
+  <div class="flex justify-between h-16">
+    <div class="flex items-center lg:hidden">
+      <button onclick="toggleSidebar()" class="p-2 text-indigo-600 hover:text-indigo-800">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="flex items-center">
+      <a href="/dashboard" class="text-2xl font-bold text-indigo-600">TutorFlow</a>
+    </div>
+    
+    <div class="flex items-center space-x-4">
+      <button class="p-2 text-indigo-600 hover:text-indigo-800 relative">
+        <i class="fas fa-bell text-xl"></i>
+        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+      </button>
+      
+      <div class="relative">
+        <button aria-label="Profile menu" onclick="toggleProfileMenu(event)" 
+                class="flex items-center focus:outline-none ring-2 ring-indigo-100 rounded-full">
+          <img src="<%= user.profilePhoto %>" 
+               class="w-10 h-10 rounded-full object-cover">
+        </button>
+        
+        <div id="profile-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-50">
+          <a href="#" onclick="openProfileModal()"
+                class="flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+                <i class="fas fa-user mr-2 text-sm"></i>Profile
+              </a>
+          <a href="/settings" class="flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+            <i class="fas fa-cog mr-2 text-sm"></i>Settings
+          </a>
+          <form action="/logout" method="POST" class="border-t border-gray-100">
+            <button type="submit" class="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-indigo-50">
+              <i class="fas fa-sign-out-alt mr-2 text-sm"></i>Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+</header>
+
+<!-- sidebar -->
+
+<aside id="sidebar" class="w-64 h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 fixed p-6 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out z-30 border-r border-indigo-200">
+<div class="flex justify-between items-center mb-8">
+  <h1 class="text-indigo-800 text-2xl font-bold">TutorFlow</h1>
+  <button onclick="toggleSidebar()" class="lg:hidden text-indigo-600">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
+<nav class="space-y-2">
+  <a href="/dashboard" class="flex items-center text-indigo-800 p-3 rounded-lg <%= currentPage === 'dashboard' ? 'bg-indigo-100 border border-indigo-200' : 'hover:bg-indigo-50' %>">
+    <i class="fas fa-home mr-3 text-indigo-600"></i>
+    <%= __('dashboard') %>
+  </a>
+  <a href="/studviewfaculty" class="flex items-center text-indigo-800 p-3 rounded-lg  hover:bg-indigo-50">
+    <i class="fas fa-users mr-3 text-indigo-600"></i>
+    <%= __('facultyList') %>
+  </a>
+</nav>
+
+<div class="absolute bottom-6 left-0 right-0 px-6">
+  <a href="/settings" class="flex items-center text-indigo-800 p-3 rounded-lg  bg-indigo-100 border border-indigo-200">
+    <i class="fas fa-cog mr-3 text-indigo-600"></i>
+    <%= __('settings') %>
+  </a>
+  <form action="/logout" method="POST" class="flex items-center text-indigo-800 w-full p-3 rounded-lg hover:bg-indigo-50">
+    <button type="submit" class="flex items-center">
+      <i class="fas fa-sign-out-alt mr-3 text-indigo-600"></i>
+      <%= __('logout') %>
+    </button>
+  </form>
+</div>
+</aside>
+<main id="main-content" class="flex-1 p-8 pt-24 lg:ml-64 lg:pt-20 min-h-screen transition-margin duration-200 ease-in-out">
+
+
+    <div class="max-w-4xl mx-auto py-8 px-4">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-indigo-800">
+                <i class="fas fa-user mr-2"></i>
+                <!-- <%= student.name %>'s Settings -->
+                <%= __( student.name) %>  <%= __('settings') %>
+
+            </h1>
+            <p class="text-gray-600"><%= student.email %></p>
+        </div>
+    
+        <!-- Language Preferences Section -->
+        <div class="bg-white rounded-xl shadow-lg mb-6 border border-indigo-100">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-indigo-800 mb-4">
+                    <i class="fas fa-globe mr-2 text-indigo-600"></i>
+                    <%= __('language_preferences') %>
+                </h3>
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div class="flex-1">
+                        <select id="languageSelect" class="w-full p-2 border border-indigo-200 rounded-lg">
+                            <% availableLanguages.forEach(lang => { %>
+                            <option value="<%= lang.code %>" <%= settings.language === lang.code ? 'selected' : '' %>>
+                                <%= lang.name %>
+                            </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <button id="updateLangBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                      <%= __('update_language') %>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div id="profile-modal" class="hidden fixed inset-0 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+    <div
+      class="bg-indigo-50 px-6 py-4 rounded-t-xl flex justify-between items-center border-b border-indigo-100">
+      <h2 class="text-xl font-semibold text-indigo-900">Student Profile</h2>
+      <button onclick="closeProfileModal()" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <div class="p-6">
+      <div class="flex flex-col md:flex-row gap-6">
+        <div class="w-full md:w-1/3 flex flex-col items-center">
+          <!-- <form id="studentPhotoForm " enctype="multipart/form-data" class="relative group">
+
+            <div class="relative photo-upload-trigger cursor-pointer">
+              <input type="file" id="studentPhotoInput" name="photo" hidden accept="image/*">
+              <img src="<%= user.profilePhoto %>"
+                class="student-preview-image w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+              <div
+                class="camera-overlay absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200">
+                <i class="fas fa-camera text-white text-2xl"></i>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3 text-center cursor-pointer photo-upload-trigger">Edit Photo</p>
+
+          </form> -->
+
+          <form id="studentPhotoForm" enctype="multipart/form-data" class="relative group">
+            <div class="relative photo-upload-trigger cursor-pointer">
+              <input type="file" id="studentPhotoInput" name="photo" hidden accept="image/*">
+              <img src="<%= user.profilePhoto %>" 
+                   onerror="this.onerror=null;this.src='/uploads/default-avatar.jpg';"
+                   class="student-preview-image w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+              <div class="camera-overlay absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200">
+                <i class="fas fa-camera text-white text-2xl"></i>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3 text-center cursor-pointer photo-upload-trigger">Edit Photo</p>
+          </form>
+          
+
+        </div>
+
+        <div class="w-full md:w-2/3 space-y-4">
+          <div>
+            <!-- <h1 class="text-2xl font-bold text-indigo-900">
+              <%= user.fullName %>
+            </h1> -->
+            <!-- Update name display section -->
+            <div class="flex items-center gap-2 group">
+              <h1 id="fullNameDisplay" class="text-2xl font-bold text-indigo-900">
+                <%= user.fullName %>
+              </h1>
+              <button onclick="toggleNameEdit()" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                <i class="fas fa-edit text-sm text-indigo-600 hover:text-indigo-800"></i>
+              </button>
+            </div>
+            <input type="text" id="fullNameInput" name="fullName"
+              class="hidden absolute bg-white p-2 border rounded-lg shadow-sm" value="<%= user.fullName %>">
+            <p class="text-sm pt-4 text-indigo-600">Student</p>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <i class="fas fa-id-card text-indigo-600 w-6"></i>
+              <span class="text-gray-700">
+                <%= user.rollNo %>
+              </span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-university text-indigo-600 w-6"></i>
+              <span class="text-gray-700">
+                <%= user.department %>
+              </span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-calendar-alt text-indigo-600 w-6"></i>
+              <span class="text-gray-700">Year <%= user.yearOfStudy %> - Semester <%= user.semester %></span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-envelope text-indigo-600 w-6"></i>
+              <span class="text-gray-700">
+                <%= user.email %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3 border-t border-indigo-100 pt-4">
+        <button onclick="closeProfileModal()"
+          class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+          Cancel
+        </button>
+        <button onclick="saveStudentProfile()"
+          class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+          <i class="fas fa-save mr-2"></i>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script>
+
+        // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 1024 && 
+                !sidebar.contains(e.target) && 
+                !sidebarToggle.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const updateBtn = document.getElementById('updateLangBtn');
+            const languageSelect = document.getElementById('languageSelect');
+
+            updateBtn.addEventListener('click', async () => {
+                const newLang = languageSelect.value;
+                
+                try {
+                    const response = await fetch('/update-student-language', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            },
+                        body: JSON.stringify({ language: newLang })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast('Language updated successfully!');
+                        // Update page language attribute
+                        document.documentElement.lang = newLang;
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Update failed:', error);
+                    showToast('Error updating language', 'error');
+                }
+            });
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg ${
+                    type === 'error' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'
+                }`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 3000);
+            }
+        });
+
+
+        
+document.querySelector("input[name='search']").addEventListener("input", async function () {
+    let query = this.value.trim(); // Get search input
+
+    if (query === "") {
+
+        location.reload(); // Reset table when input is cleared
+        return;
+    }
+    // if (query.length === 0) {
+    //     document.getElementById("facultyTableBody").innerHTML = ""; // Clear table if empty input
+    //     return;
+    // }
+    try {
+        let response = await fetch(`/searchFaculty?query=${query}`);
+        let faculties = await response.json();
+
+        // Update the table with new search results
+        updateFacultyTable(faculties);
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+    }
+});
+
+
+
+  
+  function toggleProfileMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('profile-menu');
+    menu.classList.toggle('hidden');
+    profileMenuOpen = !menu.classList.contains('hidden');
+  }
+
+
+  
+
+// Update save function to handle name
+
+
+
+
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('main-content');
+    sidebar.classList.toggle('-translate-x-full');
+    content.classList.toggle('lg:ml-64');
+  }
+
+
+  // Close profile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('profile-menu');
+    const profileBtn = document.querySelector('[aria-label="Profile menu"]');
+
+    if (!profileBtn.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add('hidden');
+      profileMenuOpen = false;
+    }
+  });
+  
+
+  function closeProfileModal() {
+    document.getElementById('profile-modal').classList.add('hidden');
+    document.getElementById('modal-backdrop').classList.add('hidden');
+  }
+
+    </script>
+       <script>
+        document.querySelector("input[name='search']").addEventListener("input", async function () {
+            let query = this.value.trim(); // Get search input
+        
+            if (query === "") {
+        
+                location.reload(); // Reset table when input is cleared
+                return;
+            }
+            // if (query.length === 0) {
+            //     document.getElementById("facultyTableBody").innerHTML = ""; // Clear table if empty input
+            //     return;
+            // }
+            try {
+                let response = await fetch(`/searchFaculty?query=${query}`);
+                let faculties = await response.json();
+        
+                // Update the table with new search results
+                updateFacultyTable(faculties);
+            } catch (error) {
+                console.error("Error fetching search results:", error);
+            }
+        });
+        
+        // Function to update table dynamically
+        function updateFacultyTable(faculties) {
+            let tbody = document.querySelector("tbody");
+            tbody.innerHTML = ""; // Clear old data
+        
+            faculties.forEach(faculty => {
+                let statusClass = faculty.status === 'busy' ? 'status-busy' : 
+                                  faculty.status === 'unavailable' ? 'status-unavailable' : 'status-available';
+                let statusText = faculty.status.charAt(0).toUpperCase() + faculty.status.slice(1);
+                
+                let row = `<tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
+                            <img src="${faculty.photo}" alt="${faculty.name}" class="w-full h-full object-cover">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">${faculty.name}</td>
+                    <td class="px-6 py-4">${faculty.department}</td>
+                    <td class="px-6 py-4">${faculty.subjects}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <span class="status-led ${statusClass}"></span>
+                            <span class="text-sm font-medium text-gray-700">${statusText}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${faculty.status === 'unavailable' ? `
+                            <button class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
+                                Request Appointment
+                            </button>` : `
+                            <a href="/faculty/${faculty.id}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                ${faculty.status === 'busy' ? 'Join Waitlist' : 'Get Appointment'}
+                            </a>`}
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+        
+          
+    
+        
+          // Add menu item click handler
+          document.querySelectorAll('#profile-menu a, #profile-menu button').forEach(item => {
+            item.addEventListener('click', () => {
+              document.getElementById('profile-menu').classList.add('hidden');
+              profileMenuOpen = false;
+            });
+          });
+          
+        // Add name edit functionality
+        function toggleNameEdit() {
+        const display = document.getElementById('fullNameDisplay');
+        const input = document.getElementById('fullNameInput');
+        
+        if (input.classList.contains('hidden')) {
+          input.style.left = `${display.offsetLeft}px`;
+          input.style.top = `${display.offsetTop}px`;
+          input.classList.remove('hidden');
+          input.focus();
+        } else {
+          input.classList.add('hidden');
+        }
+        }
+        // Update save function to handle name
+        
+        
+        
+        
+        
+        
+      
+          function openProfileModal() {
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+          }
+        
+      
+        
+          // Handle photo upload preview
+          document.addEventListener('DOMContentLoaded', () => {
+            const photoInput = document.getElementById('studentPhotoInput');
+            const previewImage = document.querySelector('.student-preview-image');
+        
+            photoInput.addEventListener('change', function (e) {
+              const file = e.target.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                  previewImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+              }
+            });
+          });
+          
+        
+        
+        async function saveStudentProfile() {
+        const form = document.getElementById('studentPhotoForm'); // Correct form reference
+        const formData = new FormData(form);
+        
+        // Add any additional fields here if needed
+        try {
+          const response = await fetch('/update-profile', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            location.reload();
+          } else {
+            console.error('Profile update failed');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+        }
+        
+        // Initialize photo upload triggers
+        document.addEventListener('DOMContentLoaded', () => {
+        // Trigger file input when clicking on photo area
+        document.querySelectorAll('.photo-upload-trigger').forEach(element => {
+          element.addEventListener('click', (e) => {
+            document.getElementById('studentPhotoInput').click();
+          });
+        });
+        
+        // Handle file selection
+        const photoInput = document.getElementById('studentPhotoInput');
+        const previewImage = document.querySelector('.student-preview-image');
+        
+        photoInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              previewImage.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+          }
+        });
+        });
+        
+        
+        
+          </script>
+</body>
+</html>
