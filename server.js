@@ -17,10 +17,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB Connected Successfully! '))
 .catch(err => console.error('MongoDB Connection Failed:', err));
 
@@ -35,6 +32,8 @@ app.use(session({
   resave: true,  
   saveUninitialized: false,  
   store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,  // Use the correct env variable
+    dbName: "tutorflow", // Ensure this matches your database name
     client: mongoose.connection.getClient(),
     ttl: 14 * 24 * 60 * 60,
     touchAfter: 24 * 3600 // Reduce session touching frequency

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/tutorflow');
+
 
 
 const facultySchema = new mongoose.Schema({
