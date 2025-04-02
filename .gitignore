@@ -1,2 +1,5 @@
-# Node.js dependencies (Do not upload node_modules folder)
+# Node.js dependencies
 node_modules/
+
+# Environment variables (Do not upload .env file)
+.env
