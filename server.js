@@ -17,7 +17,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGO_URL)
+mongoose.connect(process.env.MONGO_PUBLIC_URL)
 .then(() => console.log('MongoDB Connected Successfully! '))
 .catch(err => console.error('MongoDB Connection Failed:', err));
 
@@ -32,7 +32,7 @@ app.use(session({
   resave: true,  
   saveUninitialized: false,  
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URL,  // Use the correct env variable
+    mongoUrl: process.env.MONGO_PUBLIC_URL,  // Use the correct env variable
     dbName: "tutorflow", // Ensure this matches your database name
     client: mongoose.connection.getClient(),
     ttl: 14 * 24 * 60 * 60,
