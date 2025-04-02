@@ -7,7 +7,7 @@ const app = express();
 const MongoStore = require('connect-mongo');
 const methodOverride=require("method-override");
 app.use(methodOverride("_method"));
-mongoose.connect('mongodb://localhost:27017/tutorflow');
+// mongoose.connect('mongodb://localhost:27017/tutorflow');
 const i18n = require('i18n');
 const path = require("path");
 const cron = require('node-cron');
